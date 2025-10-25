@@ -254,6 +254,26 @@
   }
 
   async function ensureDriveFileThenLoad() {
+    // if no currentUser, try to fetch profile to create a user mapping
+    if (!currentUser && accessToken) {
+      try {
+        const profileResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` }});
+        if (profileResp.ok) {
+          const profile = await profileResp.json();
+          const username = profile.email || ('user_' + Math.floor(Math.random()*10000));
+          if (!users.find(u=>u.username===username)) {
+            const newUser = { username: username, business: profile.name || username };
+            users.push(newUser);
+            data[username] = { customers: [], suppliers: [], employees: [] };
+          }
+          currentUser = users.find(u=>u.username===username);
+          persistLocalCache();
+        }
+      } catch (err) {
+        console.warn('profile fetch failed', err);
+      }
+    }
+    
     try {
       // try saved file id first
       if (driveFileId) {
@@ -766,116 +786,8 @@
     render();
   }
 
-  function requestProfileThenCreateUser() {
-    // Use People API would be needed for detailed profile; instead use token info endpoint for basic email
-    // We'll create a simple pseudo-user using the current Google account email available via tokeninfo
-    if (!accessToken) return;
-    fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, { headers: { Authorization: `Bearer ${accessToken}` } })
-      .then(res=>res.json())
-      .then(profile=>{
-        const username = profile.email || ('user_' + Math.floor(Math.random()*10000));
-        // Create or set currentUser
-        if (!users.find(u=>u.username===username)) {
-          const newUser = { username: username, business: profile.name || username };
-          users.push(newUser);
-          data[username] = { customers: [], suppliers: [], employees: [] };
-        }
-        currentUser = users.find(u=>u.username===username);
-        persistLocalCache();
-        // after creating user, ensure drive file load/merge
-        ensureDriveFileThenLoad();
-      })
-      .catch(err=> {
-        console.error('profile fetch err', err);
-        // fallback: create a user with random id
-        const username = 'user_' + Math.floor(Math.random()*100000);
-        const newUser = { username: username, business: 'My Business' };
-        users.push(newUser);
-        data[username] = { customers: [], suppliers: [], employees: [] };
-        currentUser = newUser;
-        persistLocalCache();
-        ensureDriveFileThenLoad();
-      });
-  }
-
-  // tokenClient callback already calls ensureDriveFileThenLoad; but we also need to set currentUser
-  // We'll fetch the basic profile after obtaining token
-  // Modify initTokenClient callback to call this:
-  (function patchTokenCallback() {
-    const originalInit = google && google.accounts && google.accounts.oauth2 && google.accounts.oauth2.initTokenClient;
-    // already initialised above; but ensure we call profile fetch after token success in callback above
-  })();
-
   // small utilities
   function setStatus(t) { const el = document.getElementById('statusSpan'); if (el) el.textContent = t; console.log('[status]', t); }
-
-  // when a new access token is obtained, fetch profile and set currentUser
-  // We'll monkeypatch ensureDriveFileThenLoad caller: after token callback (which sets accessToken), call profile fetch
-  // To do this, adjust the token client creation earlier — since we created tokenClient earlier with a callback that sets accessToken and calls ensureDriveFileThenLoad(),
-  // we can augment ensureDriveFileThenLoad to check currentUser and if none, fetch profile and set it.
-
-  // Modify ensureDriveFileThenLoad to set currentUser if missing
-  const originalEnsure = ensureDriveFileThenLoad;
-  ensureDriveFileThenLoad = async function() {
-    // if no currentUser, try to fetch profile to create a user mapping
-    if (!currentUser) {
-      try {
-        const profileResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` }});
-        if (profileResp.ok) {
-          const profile = await profileResp.json();
-          const username = profile.email || ('user_' + Math.floor(Math.random()*10000));
-          if (!users.find(u=>u.username===username)) {
-            const newUser = { username: username, business: profile.name || username };
-            users.push(newUser);
-            data[username] = { customers: [], suppliers: [], employees: [] };
-          }
-          currentUser = users.find(u=>u.username===username);
-          persistLocalCache();
-        }
-      } catch (err) {
-        console.warn('profile fetch failed', err);
-      }
-    }
-    // proceed with original behavior
-    try {
-      if (driveFileId) {
-        const remote = await downloadDriveFile(driveFileId).catch(()=>null);
-        if (remote) {
-          loadAppDataFromObject(remote);
-          render();
-          return;
-        } else {
-          driveFileId = null;
-          localStorage.removeItem(LS.driveFileId);
-        }
-      }
-      const found = await findDriveFileByName(DRIVE_FILE_NAME);
-      if (found) {
-        driveFileId = found;
-        localStorage.setItem(LS.driveFileId, driveFileId);
-        const remote = await downloadDriveFile(driveFileId);
-        if (remote) loadAppDataFromObject(remote);
-        render();
-        return;
-      }
-      const initial = localStorage.getItem(LS.data) || JSON.stringify({
-        users: users,
-        currentUser: currentUser,
-        data: data
-      });
-      const newId = await createDriveFile(DRIVE_FILE_NAME, initial);
-      if (newId) {
-        driveFileId = newId;
-        localStorage.setItem(LS.driveFileId, driveFileId);
-        const remote2 = await downloadDriveFile(driveFileId);
-        if (remote2) loadAppDataFromObject(remote2);
-      }
-      render();
-    } catch (err) {
-      console.error('ensureDriveFileThenLoad', err);
-      render();
-    }
-  };
 
   // expose reload helper
   window.__joma_reload = () => {
