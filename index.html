@@ -1,51 +1,50 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Joma Khorch — Drive JSON Sync</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Joma Khorch — Drive JSON Sync</title>
 
-<!-- Google APIs -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://apis.google.com/js/api.js" async defer></script>
+  <!-- Google libraries -->
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-<style>
-  :root{--blue:#2563eb;--bg:#f8fafc;--muted:#6b7280}
-  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
-  body{background:var(--bg);color:#111;display:flex;align-items:flex-start;justify-content:center;padding:18px 12px}
-  .app{width:100%;max-width:720px;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06);overflow:hidden;min-height:560px}
-  header{padding:14px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
-  header .biz{font-weight:700}
-  header button{background:transparent;color:var(--blue);border:none;font-weight:600}
-  .tabs{display:flex;border-bottom:1px solid #f1f5f9}
-  .tab{flex:1;text-align:center;padding:10px 6px;font-weight:600;color:var(--muted);cursor:pointer}
-  .tab.active{color:var(--blue);border-bottom:3px solid var(--blue)}
-  .content{padding:14px}
-  .list .item{background:#fff;border-radius:8px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
-  .muted{color:var(--muted);font-size:13px}
-  .btn{background:var(--blue);color:#fff;padding:8px 12px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
-  .small{font-size:13px;padding:6px 8px;border-radius:8px}
-  .add-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  .table-wrap{background:#fff;border-radius:8px;padding:8px;max-height:320px;overflow:auto;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
-  tfoot td{font-weight:700;border-top:1px solid #eee}
-  .muted-badge{font-size:12px;color:var(--muted);margin-top:6px}
-  .actions {display:flex; gap:8px}
-  .link-like { background: none; border: none; color: var(--blue); font-weight:600; cursor:pointer; padding:4px 6px; font-size:13px; }
-  /* modal */
-  .modal-back{position:fixed;inset:0;display:none;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;padding:16px;z-index:60}
-  .modal{width:100%;max-width:420px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.2)}
-  .field{margin-bottom:10px}
-  input[type="text"],input[type="number"],input[type="date"]{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:15px}
-  .row{display:flex;gap:8px}
-  .row .col{flex:1}
-  .center{display:flex;gap:8px;justify-content:center}
-  .back-link{color:var(--blue);cursor:pointer}
-  .topbar { display:flex; gap:10px; align-items:center }
-  .status { font-size:13px; color:var(--muted); margin-left:8px }
-  @media (max-width:420px){ body{padding:12px} .app{border-radius:10px} }
-</style>
+  <style>
+    :root{--blue:#2563eb;--bg:#f8fafc;--muted:#6b7280}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:var(--bg);color:#111;display:flex;align-items:flex-start;justify-content:center;padding:18px 12px}
+    .app{width:100%;max-width:720px;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06);overflow:hidden;min-height:560px}
+    header{padding:14px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+    header .biz{font-weight:700}
+    header button{background:transparent;color:var(--blue);border:none;font-weight:600}
+    .tabs{display:flex;border-bottom:1px solid #f1f5f9}
+    .tab{flex:1;text-align:center;padding:10px 6px;font-weight:600;color:var(--muted);cursor:pointer}
+    .tab.active{color:var(--blue);border-bottom:3px solid var(--blue)}
+    .content{padding:14px}
+    .list .item{background:#fff;border-radius:8px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+    .muted{color:var(--muted);font-size:13px}
+    .btn{background:var(--blue);color:#fff;padding:8px 12px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
+    .small{font-size:13px;padding:6px 8px;border-radius:8px}
+    .add-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .table-wrap{background:#fff;border-radius:8px;padding:8px;max-height:320px;overflow:auto;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+    tfoot td{font-weight:700;border-top:1px solid #eee}
+    .muted-badge{font-size:12px;color:var(--muted);margin-top:6px}
+    .actions {display:flex; gap:8px}
+    .link-like { background: none; border: none; color: var(--blue); font-weight:600; cursor:pointer; padding:4px 6px; font-size:13px; }
+    .modal-back{position:fixed;inset:0;display:none;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;padding:16px;z-index:60}
+    .modal{width:100%;max-width:420px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.2)}
+    .field{margin-bottom:10px}
+    input[type="text"],input[type="number"],input[type="date"]{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:15px}
+    .row{display:flex;gap:8px}
+    .row .col{flex:1}
+    .center{display:flex;gap:8px;justify-content:center}
+    .back-link{color:var(--blue);cursor:pointer}
+    .topbar { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:10px }
+    .status { font-size:13px; color:var(--muted); margin-left:8px }
+    @media (max-width:420px){ body{padding:12px} .app{border-radius:10px} }
+  </style>
 </head>
 <body>
   <div class="app" id="app" role="application" aria-label="Joma Khorch"></div>
@@ -103,128 +102,107 @@
   </div>
 
 <script>
-/* Joma Khorch - Single HTML with Google Drive JSON sync
-   - Uses Google OAuth token client (google.accounts.oauth2.initTokenClient)
-   - Saves a JSON file named "JomaKhorchData.json" into user's Drive root
-   - Keeps localStorage cache for offline use and syncs when online
-   - Replace CLIENT_ID with your own (already set below)
+/* Final fixed index.html
+   - CLIENT_ID is your Google OAuth client id
+   - Uses Drive JSON file named JomaKhorchData.json
+   - Keeps localStorage fallback and autosync
 */
 
 (() => {
-  // ====== CONFIG ======
+  // CONFIG
   const CLIENT_ID = "415128436829-9io0a3s16u1ngr18kj1c5qm187t7sq7v.apps.googleusercontent.com";
-  // minimal scope that allows create/read/update files that this app created/opened
   const SCOPES = "https://www.googleapis.com/auth/drive.file";
   const DRIVE_FILE_NAME = "JomaKhorchData.json";
-  const LS_KEYS = {
-    users: 'ma_users_gv',
-    current: 'ma_current_gv',
-    data: 'ma_data_gv',
-    driveFileId: 'ma_drive_file_id_gv'
+  const LS = {
+    users: 'joma_users_v1',
+    current: 'joma_current_v1',
+    data: 'joma_data_v1',
+    driveFileId: 'joma_drive_file_id_v1'
   };
 
-  // ====== STATE ======
+  // state
   let tokenClient = null;
   let accessToken = null;
-  let gapiInited = false, gisInited = false;
-  let driveFileId = localStorage.getItem(LS_KEYS.driveFileId) || null;
+  let driveFileId = localStorage.getItem(LS.driveFileId) || null;
 
-  // App data structures (same as before)
-  let users = JSON.parse(localStorage.getItem(LS_KEYS.users) || '[]');
-  let currentUser = JSON.parse(localStorage.getItem(LS_KEYS.current) || 'null');
-  let data = JSON.parse(localStorage.getItem(LS_KEYS.data) || '{}') || {};
+  let users = JSON.parse(localStorage.getItem(LS.users) || '[]');
+  let currentUser = JSON.parse(localStorage.getItem(LS.current) || 'null');
+  let data = JSON.parse(localStorage.getItem(LS.data) || '{}') || {};
 
-  // UI state
   let activeTab = 'customers';
-  let openAccount = null, entryMode = 'debit';
-  let editingEntity = null, editingEntry = null;
+  let openAccount = null;
+  let entryMode = 'debit';
+  let editingEntity = null;
+  let editingEntry = null;
 
-  // DOM
+  // dom
   const app = document.getElementById('app');
   const modalAdd = document.getElementById('modalAdd');
   const modalEntry = document.getElementById('modalEntry');
 
-  // ====== Google API setup ======
-  window.onload = () => {
-    // gapi library may load separately; we rely on callback injection
-    // initialize token client when google accounts library loaded
-    waitForGapiInit();
-  };
-
-  function waitForGapiInit() {
-    // ensure google.accounts and gapi are available
-    const check = () => {
-      if (window.google && window.gapi) {
-        initGapiClient();
-        initGisClient();
-      } else {
-        setTimeout(check, 200);
+  // initialize gapi & token client
+  function waitForGoogle() {
+    const t = setInterval(() => {
+      if (window.gapi && window.google && window.google.accounts && window.gapi.client) {
+        clearInterval(t);
+        initGapi();
+        initTokenClient();
       }
-    };
-    check();
+    }, 200);
   }
 
-  function initGapiClient() {
+  function initGapi() {
     gapi.load('client', async () => {
       try {
         await gapi.client.init({
-          apiKey: '', // not required for our drive.file usage
           discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"]
         });
-        gapiInited = true;
-        // nothing else to do until sign-in request
+        // noop
       } catch (err) {
-        console.error("gapi.client.init error", err);
+        console.error('gapi client init error', err);
       }
     });
   }
 
-  function initGisClient() {
+  function initTokenClient() {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
       callback: (resp) => {
         if (resp.error) {
-          console.error("Token callback error", resp);
+          console.error('token callback error', resp);
+          setStatus('Sign-in failed');
           return;
         }
         accessToken = resp.access_token;
-        // After getting access token, load or create the Drive file and then app
+        setStatus('Signed in');
         ensureDriveFileThenLoad();
       }
     });
-    gisInited = true;
     // initial render
     render();
   }
 
-  // ====== Drive helpers ======
-
-  // Try to find file by name (returns fileId or null)
+  // Drive helpers
   async function findDriveFileByName(name) {
     if (!accessToken) return null;
     try {
-      // search in user drive by filename (not trashed)
-      const q = `name = '${name.replace("'", "\\'")}' and trashed = false`;
-      const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,owners)`, {
+      const q = `name = '${name.replace(/'/g, "\\'")}' and trashed = false`;
+      const resp = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-      const j = await res.json();
-      if (j.files && j.files.length > 0) {
-        return j.files[0].id;
-      }
+      const j = await resp.json();
+      if (j.files && j.files.length) return j.files[0].id;
       return null;
     } catch (err) {
-      console.error("findDriveFileByName err", err);
+      console.error('findDriveFileByName', err);
       return null;
     }
   }
 
-  // Create file on Drive (returns fileId)
   async function createDriveFile(name, content) {
     if (!accessToken) throw new Error('No access token');
     try {
-      // create metadata + media upload
       const metadata = { name: name, mimeType: 'application/json' };
       const form = new FormData();
       form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
@@ -237,30 +215,26 @@
       const j = await res.json();
       return j.id;
     } catch (err) {
-      console.error("createDriveFile err", err);
-      throw err;
+      console.error('createDriveFile err', err);
+      return null;
     }
   }
 
-  // Download file content (returns parsed JSON or null)
   async function downloadDriveFile(fileId) {
     if (!accessToken) throw new Error('No access token');
     try {
       const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-      if (!res.ok) {
-        throw new Error('Failed to download file: ' + res.status);
-      }
+      if (!res.ok) throw new Error('download failed ' + res.status);
       const text = await res.text();
       return JSON.parse(text || '{}');
     } catch (err) {
-      console.error("downloadDriveFile err", err);
+      console.error('downloadDriveFile', err);
       return null;
     }
   }
 
-  // Update file content (replace entire content)
   async function updateDriveFile(fileId, content) {
     if (!accessToken) throw new Error('No access token');
     try {
@@ -272,191 +246,153 @@
         },
         body: content
       });
-      // Drive returns updated file metadata; we don't need to use it here
       return res.ok;
     } catch (err) {
-      console.error("updateDriveFile err", err);
+      console.error('updateDriveFile', err);
       return false;
     }
   }
 
-  // Ensure driveFileId exists: try localStorage -> find by name -> create
   async function ensureDriveFileThenLoad() {
     try {
-      // If we saved file id locally (from earlier session), try download it
+      // try saved file id first
       if (driveFileId) {
-        const remote = await downloadDriveFile(driveFileId);
+        const remote = await downloadDriveFile(driveFileId).catch(()=>null);
         if (remote) {
-          // merge remote into local data
           loadAppDataFromObject(remote);
           render();
           return;
         } else {
-          // file id invalid, clear and fallthrough
           driveFileId = null;
-          localStorage.removeItem(LS_KEYS.driveFileId);
+          localStorage.removeItem(LS.driveFileId);
         }
       }
 
-      // Try to find by name
-      const foundId = await findDriveFileByName(DRIVE_FILE_NAME);
-      if (foundId) {
-        driveFileId = foundId;
-        localStorage.setItem(LS_KEYS.driveFileId, driveFileId);
+      // find by name
+      const found = await findDriveFileByName(DRIVE_FILE_NAME);
+      if (found) {
+        driveFileId = found;
+        localStorage.setItem(LS.driveFileId, driveFileId);
         const remote = await downloadDriveFile(driveFileId);
-        if (remote) {
-          loadAppDataFromObject(remote);
-          render();
-          return;
-        }
+        if (remote) loadAppDataFromObject(remote);
+        render();
+        return;
       }
 
-      // Not found — create new file using local cache if exists, otherwise template
-      const initial = localStorage.getItem(LS_KEYS.data) || JSON.stringify({
+      // create new file using local cache if exists, else default
+      const initial = localStorage.getItem(LS.data) || JSON.stringify({
         users: users,
         currentUser: currentUser,
         data: data
       });
       const newId = await createDriveFile(DRIVE_FILE_NAME, initial);
-      driveFileId = newId;
-      localStorage.setItem(LS_KEYS.driveFileId, driveFileId);
-      // after create, load remote (should be same as initial)
-      const remote2 = await downloadDriveFile(driveFileId);
-      if (remote2) {
-        loadAppDataFromObject(remote2);
+      if (newId) {
+        driveFileId = newId;
+        localStorage.setItem(LS.driveFileId, driveFileId);
+        const remote2 = await downloadDriveFile(driveFileId);
+        if (remote2) loadAppDataFromObject(remote2);
       }
       render();
     } catch (err) {
-      console.error("ensureDriveFileThenLoad err", err);
-      // fallback: continue with localStorage
-      render();
+      console.error('ensureDriveFileThenLoad', err);
+      render(); // fallback
     }
   }
 
-  // Upload current local data to drive (if signed in)
   async function syncToDrive() {
+    if (!accessToken) return false;
     try {
-      if (!accessToken) return false;
-      // ensure file exists
+      const payload = JSON.stringify({ users: users, currentUser: currentUser, data: data });
       if (!driveFileId) {
-        const newId = await createDriveFile(DRIVE_FILE_NAME, JSON.stringify(collectFullAppObject()));
-        driveFileId = newId;
-        localStorage.setItem(LS_KEYS.driveFileId, driveFileId);
-        return true;
+        const newId = await createDriveFile(DRIVE_FILE_NAME, payload);
+        if (newId) {
+          driveFileId = newId;
+          localStorage.setItem(LS.driveFileId, driveFileId);
+          return true;
+        }
+        return false;
       } else {
-        const content = JSON.stringify(collectFullAppObject());
-        const ok = await updateDriveFile(driveFileId, content);
+        const ok = await updateDriveFile(driveFileId, payload);
         return ok;
       }
     } catch (err) {
-      console.error("syncToDrive err", err);
+      console.error('syncToDrive', err);
       return false;
     }
   }
 
-  // ====== App data helpers ======
-  function collectFullAppObject() {
-    return { users: users, currentUser: currentUser, data: data };
-  }
-
   function loadAppDataFromObject(obj) {
     try {
-      // support older formats (if obj stores nested)
       if (obj.users) users = obj.users;
       if (obj.currentUser) currentUser = obj.currentUser;
       if (obj.data) data = obj.data;
-      // ensure structure for current user
       if (currentUser && !data[currentUser.username]) data[currentUser.username] = { customers: [], suppliers: [], employees: [] };
-      // persist locally as cache
       persistLocalCache();
     } catch (err) {
-      console.error("loadAppDataFromObject err", err);
+      console.error('loadAppDataFromObject', err);
     }
   }
 
   function persistLocalCache() {
-    localStorage.setItem(LS_KEYS.users, JSON.stringify(users));
-    localStorage.setItem(LS_KEYS.current, JSON.stringify(currentUser));
-    localStorage.setItem(LS_KEYS.data, JSON.stringify(data));
+    localStorage.setItem(LS.users, JSON.stringify(users));
+    localStorage.setItem(LS.current, JSON.stringify(currentUser));
+    localStorage.setItem(LS.data, JSON.stringify(data));
   }
 
-  // Call this whenever local data changes
   async function saveLocalAndMaybeSync() {
     persistLocalCache();
-    // try to sync in background (non-blocking)
+    setStatus('Saved locally');
     if (accessToken) {
-      // best effort; no UI blocking
-      syncToDrive().then(ok => {
-        setStatus(ok ? 'Synced with Drive' : 'Saved locally (sync failed)');
-        // no further action
-      });
-    } else {
-      setStatus('Saved locally (offline)');
+      setStatus('Syncing to Drive...');
+      const ok = await syncToDrive();
+      setStatus(ok ? 'Synced with Drive' : 'Saved locally (sync failed)');
     }
   }
 
-  // ====== UI RENDER ======
+  // UI rendering
   function render() {
     app.innerHTML = '';
-    // top sign-in area + app
-    const headerDiv = document.createElement('div');
-    headerDiv.style.padding = '8px';
-    headerDiv.className = 'topbar';
+    const topbar = document.createElement('div');
+    topbar.className = 'topbar';
     const left = document.createElement('div');
-    const right = document.createElement('div');
-
     left.innerHTML = `<div style="font-weight:700">${escapeHtml(currentUser ? currentUser.business : 'Joma Khorch')}</div>`;
-    // status area on right
+    const right = document.createElement('div');
     const statusSpan = document.createElement('span');
     statusSpan.id = 'statusSpan';
     statusSpan.className = 'status';
     statusSpan.textContent = accessToken ? 'Signed in' : 'Not signed in';
-
-    right.appendChild(statusSpan);
-    headerDiv.appendChild(left);
-
-    // Sign in/out UI
-    const signinWrap = document.createElement('div');
     if (!accessToken) {
-      const btn = document.createElement('button');
-      btn.className = 'btn';
-      btn.textContent = 'Sign in with Google';
-      btn.addEventListener('click', requestAccessToken);
-      signinWrap.appendChild(btn);
+      const signBtn = document.createElement('button');
+      signBtn.className = 'btn';
+      signBtn.textContent = 'Sign in with Google';
+      signBtn.addEventListener('click', requestAccessToken);
+      right.appendChild(signBtn);
     } else {
       const out = document.createElement('button');
       out.className = 'small';
       out.textContent = 'Sign out';
       out.addEventListener('click', signOut);
-      signinWrap.appendChild(out);
-      // optionally show drive file id
-      const fileinfo = document.createElement('div');
-      fileinfo.className = 'muted';
-      fileinfo.style.marginTop = '6px';
-      fileinfo.textContent = driveFileId ? `Drive file: ${driveFileId}` : 'Drive: (no file)';
-      signinWrap.appendChild(fileinfo);
+      right.appendChild(out);
+      const info = document.createElement('div');
+      info.className = 'muted';
+      info.style.marginTop = '6px';
+      info.textContent = driveFileId ? `Drive file id: ${driveFileId}` : 'Drive file: (none)';
+      right.appendChild(info);
     }
-    headerDiv.appendChild(signinWrap);
-    app.appendChild(headerDiv);
+    right.appendChild(statusSpan);
+    topbar.appendChild(left);
+    topbar.appendChild(right);
+    app.appendChild(topbar);
 
-    // If no current user object, show a simple signup/login UI that uses Google account as "user"
     if (!currentUser) {
-      // show a small note and allow 'Use Google account' to create a basic business name from profile
-      const el = document.createElement('div');
-      el.style.padding = '18px';
-      el.innerHTML = `
-        <div style="max-width:720px;margin:0 auto;padding-bottom:18px">
-          <h2 style="margin:6px 0 10px 0">Welcome</h2>
-          <div class="muted">Please sign in with Google. Your Drive will store your data privately.</div>
-        </div>
-      `;
-      app.appendChild(el);
+      const welcome = document.createElement('div');
+      welcome.style.padding = '18px';
+      welcome.innerHTML = `<div style="max-width:720px;margin:0 auto;padding-bottom:18px"><h2 style="margin:6px 0 10px 0">Welcome</h2><div class="muted">Sign in with Google to store and sync your data in your Drive.</div></div>`;
+      app.appendChild(welcome);
       return;
     }
 
-    // Now the main app UI
     const container = document.createElement('div');
-
     const tabs = document.createElement('div');
     tabs.className = 'tabs';
     tabs.innerHTML = `<div id="tabCust" class="tab">Customers</div><div id="tabSupp" class="tab">Suppliers</div><div id="tabEmp" class="tab">Employees</div>`;
@@ -469,26 +405,13 @@
 
     app.appendChild(container);
 
-    document.getElementById && setTimeout(() => {
-      // link tab handlers after DOM inserted
-      const tabCust = document.getElementById('tabCust');
-      const tabSupp = document.getElementById('tabSupp');
-      const tabEmp = document.getElementById('tabEmp');
-      tabCust && tabCust.addEventListener('click', () => { activeTab = 'customers'; openAccount = null; updateTabs(); renderList(); });
-      tabSupp && tabSupp.addEventListener('click', () => { activeTab = 'suppliers'; openAccount = null; updateTabs(); renderList(); });
-      tabEmp && tabEmp.addEventListener('click', () => { activeTab = 'employees'; openAccount = null; updateTabs(); renderList(); });
+    setTimeout(() => {
+      document.getElementById('tabCust').addEventListener('click', () => { activeTab = 'customers'; openAccount = null; updateTabs(); renderList(); });
+      document.getElementById('tabSupp').addEventListener('click', () => { activeTab = 'suppliers'; openAccount = null; updateTabs(); renderList(); });
+      document.getElementById('tabEmp').addEventListener('click', () => { activeTab = 'employees'; openAccount = null; updateTabs(); renderList(); });
       updateTabs();
       renderList();
-    }, 50);
-  }
-
-  function updateStatusText(text) {
-    const s = document.getElementById('statusSpan');
-    if (s) s.textContent = text;
-  }
-  function setStatus(text) {
-    updateStatusText(text);
-    console.log('[STATUS]', text);
+    }, 40);
   }
 
   function updateTabs() {
@@ -549,7 +472,7 @@
     document.getElementById('openAdd').addEventListener('click', () => openAddModal(activeTab));
   }
 
-  // ==== Entity add/edit modal ====
+  // Entity modal functions
   let currentAddType = null;
   function openAddModal(type) {
     currentAddType = type;
@@ -619,7 +542,7 @@
     renderList();
   });
 
-  // ==== Account view & entries ====
+  // Account view
   function renderAccount() {
     const area = document.getElementById('contentArea');
     if (!area) return;
@@ -718,8 +641,15 @@
   function updateEntryModeUI() {
     const d = document.getElementById('debitInputs');
     const c = document.getElementById('creditInputs');
-    if (entryMode === 'debit') { d.style.display='block'; c.style.display='none'; document.getElementById('entryDebit').style.background='var(--blue)'; document.getElementById('entryDebit').style.color='#fff'; document.getElementById('entryCredit').style.background=''; document.getElementById('entryCredit').style.color=''; }
-    else { d.style.display='none'; c.style.display='block'; document.getElementById('entryCredit').style.background='var(--blue)'; document.getElementById('entryCredit').style.color='#fff'; document.getElementById('entryDebit').style.background=''; document.getElementById('entryDebit').style.color=''; }
+    if (entryMode === 'debit') {
+      d.style.display = 'block'; c.style.display = 'none';
+      document.getElementById('entryDebit').style.background = 'var(--blue)'; document.getElementById('entryDebit').style.color = '#fff';
+      document.getElementById('entryCredit').style.background = ''; document.getElementById('entryCredit').style.color = '';
+    } else {
+      d.style.display = 'none'; c.style.display = 'block';
+      document.getElementById('entryCredit').style.background = 'var(--blue)'; document.getElementById('entryCredit').style.color = '#fff';
+      document.getElementById('entryDebit').style.background = ''; document.getElementById('entryDebit').style.color = '';
+    }
     updateDebitAmount();
   }
 
@@ -764,7 +694,6 @@
       }
     }
 
-    // Recalc totals and save
     recalcEntityFromEntries(acc);
     await saveLocalAndMaybeSync();
     closeEntryModal();
@@ -772,7 +701,7 @@
     renderList();
   });
 
-  // ==== Data helpers ====
+  // helpers
   function recalcEntityFromEntries(entity) {
     const totals = calcTotals(entity.entries || []);
     entity.credit = totals.totalCredit;
@@ -797,13 +726,11 @@
     } catch(e){ return iso; }
   }
   function ordinal(n){ const s=['th','st','nd','rd'], v=n%100; return n + (s[(v-20)%10]||s[v]||s[0]); }
-  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":\"&#39;\"}[m]; }); }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
 
-  // Clicking outside modals closes them
   modalAdd.addEventListener('click', (e)=>{ if (e.target===modalAdd) closeAddModal(); });
   modalEntry.addEventListener('click', (e)=>{ if (e.target===modalEntry) closeEntryModal(); });
 
-  // Save local + schedule sync
   async function saveLocalAndMaybeSync() {
     persistLocalCache();
     setStatus('Saved locally');
@@ -814,16 +741,14 @@
     }
   }
 
-  // Persist local cache
   function persistLocalCache() {
-    localStorage.setItem(LS_KEYS.users, JSON.stringify(users));
-    localStorage.setItem(LS_KEYS.current, JSON.stringify(currentUser));
-    localStorage.setItem(LS_KEYS.data, JSON.stringify(data));
+    localStorage.setItem(LS.users, JSON.stringify(users));
+    localStorage.setItem(LS.current, JSON.stringify(currentUser));
+    localStorage.setItem(LS.data, JSON.stringify(data));
   }
 
-  // ====== AUTH FLOW: request token / sign out ======
+  // auth helpers
   function requestAccessToken() {
-    // When requesting, tokenClient will call callback and set accessToken
     setStatus('Requesting Google permission...');
     tokenClient.requestAccessToken({ prompt: 'consent' });
   }
@@ -831,34 +756,140 @@
   async function signOut() {
     try {
       if (accessToken) {
-        // revoke token
-        const revokeRes = await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, { method: 'POST', headers: { 'Content-type': 'application/x-www-form-urlencoded' }});
-        console.log('revoke', revokeRes.status);
+        await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, { method: 'POST', headers: { 'Content-type': 'application/x-www-form-urlencoded' }});
       }
     } catch(e) { console.warn('revoke error', e); }
     accessToken = null;
     driveFileId = null;
-    localStorage.removeItem(LS_KEYS.driveFileId);
+    localStorage.removeItem(LS.driveFileId);
     setStatus('Signed out');
     render();
   }
 
-  // ====== UTIL ======
-  function escapeHtml(s) { return String(s||'').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":\"&#39;\"}[m]; }); }
-  function setStatus(t) { const el = document.getElementById('statusSpan'); if (el) el.textContent = t; console.log('[status]',t); }
+  function requestProfileThenCreateUser() {
+    // Use People API would be needed for detailed profile; instead use token info endpoint for basic email
+    // We'll create a simple pseudo-user using the current Google account email available via tokeninfo
+    if (!accessToken) return;
+    fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, { headers: { Authorization: `Bearer ${accessToken}` } })
+      .then(res=>res.json())
+      .then(profile=>{
+        const username = profile.email || ('user_' + Math.floor(Math.random()*10000));
+        // Create or set currentUser
+        if (!users.find(u=>u.username===username)) {
+          const newUser = { username: username, business: profile.name || username };
+          users.push(newUser);
+          data[username] = { customers: [], suppliers: [], employees: [] };
+        }
+        currentUser = users.find(u=>u.username===username);
+        persistLocalCache();
+        // after creating user, ensure drive file load/merge
+        ensureDriveFileThenLoad();
+      })
+      .catch(err=> {
+        console.error('profile fetch err', err);
+        // fallback: create a user with random id
+        const username = 'user_' + Math.floor(Math.random()*100000);
+        const newUser = { username: username, business: 'My Business' };
+        users.push(newUser);
+        data[username] = { customers: [], suppliers: [], employees: [] };
+        currentUser = newUser;
+        persistLocalCache();
+        ensureDriveFileThenLoad();
+      });
+  }
 
-  // ====== ONCE SIGNED-IN: ensureDriveFileThenLoad called from tokenClient callback ======
+  // tokenClient callback already calls ensureDriveFileThenLoad; but we also need to set currentUser
+  // We'll fetch the basic profile after obtaining token
+  // Modify initTokenClient callback to call this:
+  (function patchTokenCallback() {
+    const originalInit = google && google.accounts && google.accounts.oauth2 && google.accounts.oauth2.initTokenClient;
+    // already initialised above; but ensure we call profile fetch after token success in callback above
+  })();
 
-  // Expose a reload helper
+  // small utilities
+  function setStatus(t) { const el = document.getElementById('statusSpan'); if (el) el.textContent = t; console.log('[status]', t); }
+
+  // when a new access token is obtained, fetch profile and set currentUser
+  // We'll monkeypatch ensureDriveFileThenLoad caller: after token callback (which sets accessToken), call profile fetch
+  // To do this, adjust the token client creation earlier — since we created tokenClient earlier with a callback that sets accessToken and calls ensureDriveFileThenLoad(),
+  // we can augment ensureDriveFileThenLoad to check currentUser and if none, fetch profile and set it.
+
+  // Modify ensureDriveFileThenLoad to set currentUser if missing
+  const originalEnsure = ensureDriveFileThenLoad;
+  ensureDriveFileThenLoad = async function() {
+    // if no currentUser, try to fetch profile to create a user mapping
+    if (!currentUser) {
+      try {
+        const profileResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` }});
+        if (profileResp.ok) {
+          const profile = await profileResp.json();
+          const username = profile.email || ('user_' + Math.floor(Math.random()*10000));
+          if (!users.find(u=>u.username===username)) {
+            const newUser = { username: username, business: profile.name || username };
+            users.push(newUser);
+            data[username] = { customers: [], suppliers: [], employees: [] };
+          }
+          currentUser = users.find(u=>u.username===username);
+          persistLocalCache();
+        }
+      } catch (err) {
+        console.warn('profile fetch failed', err);
+      }
+    }
+    // proceed with original behavior
+    try {
+      if (driveFileId) {
+        const remote = await downloadDriveFile(driveFileId).catch(()=>null);
+        if (remote) {
+          loadAppDataFromObject(remote);
+          render();
+          return;
+        } else {
+          driveFileId = null;
+          localStorage.removeItem(LS.driveFileId);
+        }
+      }
+      const found = await findDriveFileByName(DRIVE_FILE_NAME);
+      if (found) {
+        driveFileId = found;
+        localStorage.setItem(LS.driveFileId, driveFileId);
+        const remote = await downloadDriveFile(driveFileId);
+        if (remote) loadAppDataFromObject(remote);
+        render();
+        return;
+      }
+      const initial = localStorage.getItem(LS.data) || JSON.stringify({
+        users: users,
+        currentUser: currentUser,
+        data: data
+      });
+      const newId = await createDriveFile(DRIVE_FILE_NAME, initial);
+      if (newId) {
+        driveFileId = newId;
+        localStorage.setItem(LS.driveFileId, driveFileId);
+        const remote2 = await downloadDriveFile(driveFileId);
+        if (remote2) loadAppDataFromObject(remote2);
+      }
+      render();
+    } catch (err) {
+      console.error('ensureDriveFileThenLoad', err);
+      render();
+    }
+  };
+
+  // expose reload helper
   window.__joma_reload = () => {
-    users = JSON.parse(localStorage.getItem(LS_KEYS.users) || '[]');
-    currentUser = JSON.parse(localStorage.getItem(LS_KEYS.current) || 'null');
-    data = JSON.parse(localStorage.getItem(LS_KEYS.data) || '{}') || {};
-    driveFileId = localStorage.getItem(LS_KEYS.driveFileId) || null;
+    users = JSON.parse(localStorage.getItem(LS.users) || '[]');
+    currentUser = JSON.parse(localStorage.getItem(LS.current) || 'null');
+    data = JSON.parse(localStorage.getItem(LS.data) || '{}') || {};
+    driveFileId = localStorage.getItem(LS.driveFileId) || null;
     render();
   };
 
-  // The initial render (shows sign-in prompt)
+  // start google init waiting
+  waitForGoogle();
+
+  // initial render
   render();
 
 })();
