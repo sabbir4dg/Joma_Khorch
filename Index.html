@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Joma Khorch — Drive JSON Sync</title>
+
+<!-- Google APIs -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
+
+<style>
+  :root{--blue:#2563eb;--bg:#f8fafc;--muted:#6b7280}
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+  body{background:var(--bg);color:#111;display:flex;align-items:flex-start;justify-content:center;padding:18px 12px}
+  .app{width:100%;max-width:720px;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06);overflow:hidden;min-height:560px}
+  header{padding:14px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+  header .biz{font-weight:700}
+  header button{background:transparent;color:var(--blue);border:none;font-weight:600}
+  .tabs{display:flex;border-bottom:1px solid #f1f5f9}
+  .tab{flex:1;text-align:center;padding:10px 6px;font-weight:600;color:var(--muted);cursor:pointer}
+  .tab.active{color:var(--blue);border-bottom:3px solid var(--blue)}
+  .content{padding:14px}
+  .list .item{background:#fff;border-radius:8px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+  .muted{color:var(--muted);font-size:13px}
+  .btn{background:var(--blue);color:#fff;padding:8px 12px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
+  .small{font-size:13px;padding:6px 8px;border-radius:8px}
+  .add-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .table-wrap{background:#fff;border-radius:8px;padding:8px;max-height:320px;overflow:auto;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+  tfoot td{font-weight:700;border-top:1px solid #eee}
+  .muted-badge{font-size:12px;color:var(--muted);margin-top:6px}
+  .actions {display:flex; gap:8px}
+  .link-like { background: none; border: none; color: var(--blue); font-weight:600; cursor:pointer; padding:4px 6px; font-size:13px; }
+  /* modal */
+  .modal-back{position:fixed;inset:0;display:none;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;padding:16px;z-index:60}
+  .modal{width:100%;max-width:420px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.2)}
+  .field{margin-bottom:10px}
+  input[type="text"],input[type="number"],input[type="date"]{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;font-size:15px}
+  .row{display:flex;gap:8px}
+  .row .col{flex:1}
+  .center{display:flex;gap:8px;justify-content:center}
+  .back-link{color:var(--blue);cursor:pointer}
+  .topbar { display:flex; gap:10px; align-items:center }
+  .status { font-size:13px; color:var(--muted); margin-left:8px }
+  @media (max-width:420px){ body{padding:12px} .app{border-radius:10px} }
+</style>
+</head>
+<body>
+  <div class="app" id="app" role="application" aria-label="Joma Khorch"></div>
+
+  <!-- Persistent Add/Edit Entity Modal -->
+  <div id="modalAdd" class="modal-back" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalAddTitle">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div id="modalAddTitle" style="font-weight:700"></div>
+        <button id="modalAddClose" class="small" style="background:transparent;color:var(--muted);border:1px solid #eee">Close</button>
+      </div>
+      <div>
+        <div class="field"><input id="m_name" type="text" placeholder="Name" /></div>
+        <div class="field"><input id="m_address" type="text" placeholder="Address" /></div>
+        <div class="row">
+          <div class="col field"><input id="m_phone" type="text" placeholder="Phone" /></div>
+          <div class="col field"><input id="m_credit" type="number" placeholder="Current Credit" /></div>
+        </div>
+        <div class="row">
+          <div class="col field"><input id="m_debit" type="number" placeholder="Current Debit" /></div>
+          <div class="col"></div>
+        </div>
+        <div class="center"><button id="modalAddSave" class="btn">Save</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Persistent Add/Edit Entry Modal -->
+  <div id="modalEntry" class="modal-back" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalEntryTitle">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div id="modalEntryTitle" style="font-weight:700">New Entry</div>
+        <button id="modalEntryClose" class="small" style="background:transparent;color:var(--muted);border:1px solid #eee">Close</button>
+      </div>
+      <div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button id="entryDebit" class="small" style="flex:1">Debit</button>
+          <button id="entryCredit" class="small" style="flex:1">Credit</button>
+        </div>
+        <div class="field"><input id="e_date" type="date" /></div>
+        <div class="field"><input id="e_desc" type="text" placeholder="Description" /></div>
+        <div id="debitInputs" style="display:none">
+          <div class="row">
+            <div class="col field"><input id="e_rate" type="number" placeholder="Rate" /></div>
+            <div class="col field"><input id="e_qty" type="number" placeholder="Quantity" /></div>
+          </div>
+          <div class="field muted">Amount: <span id="debitAmount">0.00</span></div>
+        </div>
+        <div id="creditInputs" style="display:none">
+          <div class="field"><input id="e_amount" type="number" placeholder="Amount" /></div>
+        </div>
+        <div class="center"><button id="modalEntrySave" class="btn">Save Entry</button></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Joma Khorch - Single HTML with Google Drive JSON sync
+   - Uses Google OAuth token client (google.accounts.oauth2.initTokenClient)
+   - Saves a JSON file named "JomaKhorchData.json" into user's Drive root
+   - Keeps localStorage cache for offline use and syncs when online
+   - Replace CLIENT_ID with your own (already set below)
+*/
+
+(() => {
+  // ====== CONFIG ======
+  const CLIENT_ID = "415128436829-9io0a3s16u1ngr18kj1c5qm187t7sq7v.apps.googleusercontent.com";
+  // minimal scope that allows create/read/update files that this app created/opened
+  const SCOPES = "https://www.googleapis.com/auth/drive.file";
+  const DRIVE_FILE_NAME = "JomaKhorchData.json";
+  const LS_KEYS = {
+    users: 'ma_users_gv',
+    current: 'ma_current_gv',
+    data: 'ma_data_gv',
+    driveFileId: 'ma_drive_file_id_gv'
+  };
+
+  // ====== STATE ======
+  let tokenClient = null;
+  let accessToken = null;
+  let gapiInited = false, gisInited = false;
+  let driveFileId = localStorage.getItem(LS_KEYS.driveFileId) || null;
+
+  // App data structures (same as before)
+  let users = JSON.parse(localStorage.getItem(LS_KEYS.users) || '[]');
+  let currentUser = JSON.parse(localStorage.getItem(LS_KEYS.current) || 'null');
+  let data = JSON.parse(localStorage.getItem(LS_KEYS.data) || '{}') || {};
+
+  // UI state
+  let activeTab = 'customers';
+  let openAccount = null, entryMode = 'debit';
+  let editingEntity = null, editingEntry = null;
+
+  // DOM
+  const app = document.getElementById('app');
+  const modalAdd = document.getElementById('modalAdd');
+  const modalEntry = document.getElementById('modalEntry');
+
+  // ====== Google API setup ======
+  window.onload = () => {
+    // gapi library may load separately; we rely on callback injection
+    // initialize token client when google accounts library loaded
+    waitForGapiInit();
+  };
+
+  function waitForGapiInit() {
+    // ensure google.accounts and gapi are available
+    const check = () => {
+      if (window.google && window.gapi) {
+        initGapiClient();
+        initGisClient();
+      } else {
+        setTimeout(check, 200);
+      }
+    };
+    check();
+  }
+
+  function initGapiClient() {
+    gapi.load('client', async () => {
+      try {
+        await gapi.client.init({
+          apiKey: '', // not required for our drive.file usage
+          discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"]
+        });
+        gapiInited = true;
+        // nothing else to do until sign-in request
+      } catch (err) {
+        console.error("gapi.client.init error", err);
+      }
+    });
+  }
+
+  function initGisClient() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: (resp) => {
+        if (resp.error) {
+          console.error("Token callback error", resp);
+          return;
+        }
+        accessToken = resp.access_token;
+        // After getting access token, load or create the Drive file and then app
+        ensureDriveFileThenLoad();
+      }
+    });
+    gisInited = true;
+    // initial render
+    render();
+  }
+
+  // ====== Drive helpers ======
+
+  // Try to find file by name (returns fileId or null)
+  async function findDriveFileByName(name) {
+    if (!accessToken) return null;
+    try {
+      // search in user drive by filename (not trashed)
+      const q = `name = '${name.replace("'", "\\'")}' and trashed = false`;
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,owners)`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      const j = await res.json();
+      if (j.files && j.files.length > 0) {
+        return j.files[0].id;
+      }
+      return null;
+    } catch (err) {
+      console.error("findDriveFileByName err", err);
+      return null;
+    }
+  }
+
+  // Create file on Drive (returns fileId)
+  async function createDriveFile(name, content) {
+    if (!accessToken) throw new Error('No access token');
+    try {
+      // create metadata + media upload
+      const metadata = { name: name, mimeType: 'application/json' };
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', new Blob([content], { type: 'application/json' }));
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form
+      });
+      const j = await res.json();
+      return j.id;
+    } catch (err) {
+      console.error("createDriveFile err", err);
+      throw err;
+    }
+  }
+
+  // Download file content (returns parsed JSON or null)
+  async function downloadDriveFile(fileId) {
+    if (!accessToken) throw new Error('No access token');
+    try {
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (!res.ok) {
+        throw new Error('Failed to download file: ' + res.status);
+      }
+      const text = await res.text();
+      return JSON.parse(text || '{}');
+    } catch (err) {
+      console.error("downloadDriveFile err", err);
+      return null;
+    }
+  }
+
+  // Update file content (replace entire content)
+  async function updateDriveFile(fileId, content) {
+    if (!accessToken) throw new Error('No access token');
+    try {
+      const res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: content
+      });
+      // Drive returns updated file metadata; we don't need to use it here
+      return res.ok;
+    } catch (err) {
+      console.error("updateDriveFile err", err);
+      return false;
+    }
+  }
+
+  // Ensure driveFileId exists: try localStorage -> find by name -> create
+  async function ensureDriveFileThenLoad() {
+    try {
+      // If we saved file id locally (from earlier session), try download it
+      if (driveFileId) {
+        const remote = await downloadDriveFile(driveFileId);
+        if (remote) {
+          // merge remote into local data
+          loadAppDataFromObject(remote);
+          render();
+          return;
+        } else {
+          // file id invalid, clear and fallthrough
+          driveFileId = null;
+          localStorage.removeItem(LS_KEYS.driveFileId);
+        }
+      }
+
+      // Try to find by name
+      const foundId = await findDriveFileByName(DRIVE_FILE_NAME);
+      if (foundId) {
+        driveFileId = foundId;
+        localStorage.setItem(LS_KEYS.driveFileId, driveFileId);
+        const remote = await downloadDriveFile(driveFileId);
+        if (remote) {
+          loadAppDataFromObject(remote);
+          render();
+          return;
+        }
+      }
+
+      // Not found — create new file using local cache if exists, otherwise template
+      const initial = localStorage.getItem(LS_KEYS.data) || JSON.stringify({
+        users: users,
+        currentUser: currentUser,
+        data: data
+      });
+      const newId = await createDriveFile(DRIVE_FILE_NAME, initial);
+      driveFileId = newId;
+      localStorage.setItem(LS_KEYS.driveFileId, driveFileId);
+      // after create, load remote (should be same as initial)
+      const remote2 = await downloadDriveFile(driveFileId);
+      if (remote2) {
+        loadAppDataFromObject(remote2);
+      }
+      render();
+    } catch (err) {
+      console.error("ensureDriveFileThenLoad err", err);
+      // fallback: continue with localStorage
+      render();
+    }
+  }
+
+  // Upload current local data to drive (if signed in)
+  async function syncToDrive() {
+    try {
+      if (!accessToken) return false;
+      // ensure file exists
+      if (!driveFileId) {
+        const newId = await createDriveFile(DRIVE_FILE_NAME, JSON.stringify(collectFullAppObject()));
+        driveFileId = newId;
+        localStorage.setItem(LS_KEYS.driveFileId, driveFileId);
+        return true;
+      } else {
+        const content = JSON.stringify(collectFullAppObject());
+        const ok = await updateDriveFile(driveFileId, content);
+        return ok;
+      }
+    } catch (err) {
+      console.error("syncToDrive err", err);
+      return false;
+    }
+  }
+
+  // ====== App data helpers ======
+  function collectFullAppObject() {
+    return { users: users, currentUser: currentUser, data: data };
+  }
+
+  function loadAppDataFromObject(obj) {
+    try {
+      // support older formats (if obj stores nested)
+      if (obj.users) users = obj.users;
+      if (obj.currentUser) currentUser = obj.currentUser;
+      if (obj.data) data = obj.data;
+      // ensure structure for current user
+      if (currentUser && !data[currentUser.username]) data[currentUser.username] = { customers: [], suppliers: [], employees: [] };
+      // persist locally as cache
+      persistLocalCache();
+    } catch (err) {
+      console.error("loadAppDataFromObject err", err);
+    }
+  }
+
+  function persistLocalCache() {
+    localStorage.setItem(LS_KEYS.users, JSON.stringify(users));
+    localStorage.setItem(LS_KEYS.current, JSON.stringify(currentUser));
+    localStorage.setItem(LS_KEYS.data, JSON.stringify(data));
+  }
+
+  // Call this whenever local data changes
+  async function saveLocalAndMaybeSync() {
+    persistLocalCache();
+    // try to sync in background (non-blocking)
+    if (accessToken) {
+      // best effort; no UI blocking
+      syncToDrive().then(ok => {
+        setStatus(ok ? 'Synced with Drive' : 'Saved locally (sync failed)');
+        // no further action
+      });
+    } else {
+      setStatus('Saved locally (offline)');
+    }
+  }
+
+  // ====== UI RENDER ======
+  function render() {
+    app.innerHTML = '';
+    // top sign-in area + app
+    const headerDiv = document.createElement('div');
+    headerDiv.style.padding = '8px';
+    headerDiv.className = 'topbar';
+    const left = document.createElement('div');
+    const right = document.createElement('div');
+
+    left.innerHTML = `<div style="font-weight:700">${escapeHtml(currentUser ? currentUser.business : 'Joma Khorch')}</div>`;
+    // status area on right
+    const statusSpan = document.createElement('span');
+    statusSpan.id = 'statusSpan';
+    statusSpan.className = 'status';
+    statusSpan.textContent = accessToken ? 'Signed in' : 'Not signed in';
+
+    right.appendChild(statusSpan);
+    headerDiv.appendChild(left);
+
+    // Sign in/out UI
+    const signinWrap = document.createElement('div');
+    if (!accessToken) {
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = 'Sign in with Google';
+      btn.addEventListener('click', requestAccessToken);
+      signinWrap.appendChild(btn);
+    } else {
+      const out = document.createElement('button');
+      out.className = 'small';
+      out.textContent = 'Sign out';
+      out.addEventListener('click', signOut);
+      signinWrap.appendChild(out);
+      // optionally show drive file id
+      const fileinfo = document.createElement('div');
+      fileinfo.className = 'muted';
+      fileinfo.style.marginTop = '6px';
+      fileinfo.textContent = driveFileId ? `Drive file: ${driveFileId}` : 'Drive: (no file)';
+      signinWrap.appendChild(fileinfo);
+    }
+    headerDiv.appendChild(signinWrap);
+    app.appendChild(headerDiv);
+
+    // If no current user object, show a simple signup/login UI that uses Google account as "user"
+    if (!currentUser) {
+      // show a small note and allow 'Use Google account' to create a basic business name from profile
+      const el = document.createElement('div');
+      el.style.padding = '18px';
+      el.innerHTML = `
+        <div style="max-width:720px;margin:0 auto;padding-bottom:18px">
+          <h2 style="margin:6px 0 10px 0">Welcome</h2>
+          <div class="muted">Please sign in with Google. Your Drive will store your data privately.</div>
+        </div>
+      `;
+      app.appendChild(el);
+      return;
+    }
+
+    // Now the main app UI
+    const container = document.createElement('div');
+
+    const tabs = document.createElement('div');
+    tabs.className = 'tabs';
+    tabs.innerHTML = `<div id="tabCust" class="tab">Customers</div><div id="tabSupp" class="tab">Suppliers</div><div id="tabEmp" class="tab">Employees</div>`;
+    container.appendChild(tabs);
+
+    const content = document.createElement('div');
+    content.className = 'content';
+    content.id = 'contentArea';
+    container.appendChild(content);
+
+    app.appendChild(container);
+
+    document.getElementById && setTimeout(() => {
+      // link tab handlers after DOM inserted
+      const tabCust = document.getElementById('tabCust');
+      const tabSupp = document.getElementById('tabSupp');
+      const tabEmp = document.getElementById('tabEmp');
+      tabCust && tabCust.addEventListener('click', () => { activeTab = 'customers'; openAccount = null; updateTabs(); renderList(); });
+      tabSupp && tabSupp.addEventListener('click', () => { activeTab = 'suppliers'; openAccount = null; updateTabs(); renderList(); });
+      tabEmp && tabEmp.addEventListener('click', () => { activeTab = 'employees'; openAccount = null; updateTabs(); renderList(); });
+      updateTabs();
+      renderList();
+    }, 50);
+  }
+
+  function updateStatusText(text) {
+    const s = document.getElementById('statusSpan');
+    if (s) s.textContent = text;
+  }
+  function setStatus(text) {
+    updateStatusText(text);
+    console.log('[STATUS]', text);
+  }
+
+  function updateTabs() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (activeTab === 'customers') document.getElementById('tabCust').classList.add('active');
+    if (activeTab === 'suppliers') document.getElementById('tabSupp').classList.add('active');
+    if (activeTab === 'employees') document.getElementById('tabEmp').classList.add('active');
+  }
+
+  function renderList() {
+    const area = document.getElementById('contentArea');
+    if (!area) return;
+    area.innerHTML = '';
+    const headerRow = document.createElement('div');
+    headerRow.className = 'add-row';
+    headerRow.innerHTML = `<div style="font-weight:700;text-transform:capitalize">${escapeHtml(activeTab)}</div><div><button id="openAdd" class="btn">Add</button></div>`;
+    area.appendChild(headerRow);
+
+    const listWrap = document.createElement('div');
+    listWrap.className = 'list';
+    const items = (data[currentUser.username] && data[currentUser.username][activeTab]) ? data[currentUser.username][activeTab] : [];
+    if (items.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'muted';
+      empty.style.padding = '12px';
+      empty.textContent = 'No records yet. Add new entries.';
+      listWrap.appendChild(empty);
+    } else {
+      items.forEach((it, idx) => {
+        const node = document.createElement('div');
+        node.className = 'item';
+        const outstanding = calcOutstanding(it);
+        node.innerHTML = `<div>
+            <div style="font-weight:700">${escapeHtml(it.name)}</div>
+            <div class="muted">${escapeHtml(it.address||'')}</div>
+            <div class="muted-badge">${escapeHtml(it.phone||'')}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:700">${outstanding.toFixed(2)}</div>
+            <div class="actions">
+              <button class="link-like" data-action="edit-entity" data-idx="${idx}">Edit</button>
+            </div>
+          </div>`;
+        node.addEventListener('click', (e) => {
+          if (e.target && e.target.dataset && e.target.dataset.action === 'edit-entity') return;
+          openAccount = { type: activeTab, index: idx };
+          renderAccount();
+        });
+        node.querySelector('[data-action="edit-entity"]').addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          editingEntity = { type: activeTab, index: idx };
+          openAddModalForEdit(activeTab, idx);
+        });
+        listWrap.appendChild(node);
+      });
+    }
+    area.appendChild(listWrap);
+    document.getElementById('openAdd').addEventListener('click', () => openAddModal(activeTab));
+  }
+
+  // ==== Entity add/edit modal ====
+  let currentAddType = null;
+  function openAddModal(type) {
+    currentAddType = type;
+    editingEntity = null;
+    showEntityModalBlank(type);
+  }
+  function openAddModalForEdit(type, idx) {
+    currentAddType = type;
+    editingEntity = { type, index: idx };
+    const item = data[currentUser.username][type][idx];
+    showEntityModalPrefill(type, item);
+  }
+  function showEntityModalBlank(type) {
+    modalAdd.style.display = 'flex';
+    modalAdd.setAttribute('aria-hidden', 'false');
+    document.getElementById('modalAddTitle').textContent = 'Add ' + (type.slice(0, -1));
+    document.getElementById('m_name').value = '';
+    document.getElementById('m_address').value = '';
+    document.getElementById('m_phone').value = '';
+    document.getElementById('m_credit').value = '';
+    document.getElementById('m_debit').value = '';
+    setTimeout(() => document.getElementById('m_name').focus(), 60);
+  }
+  function showEntityModalPrefill(type, item) {
+    modalAdd.style.display = 'flex';
+    modalAdd.setAttribute('aria-hidden', 'false');
+    document.getElementById('modalAddTitle').textContent = 'Edit ' + (type.slice(0, -1));
+    document.getElementById('m_name').value = item.name || '';
+    document.getElementById('m_address').value = item.address || '';
+    document.getElementById('m_phone').value = item.phone || '';
+    document.getElementById('m_credit').value = Number(item.credit || 0);
+    document.getElementById('m_debit').value = Number(item.debit || 0);
+    setTimeout(() => document.getElementById('m_name').focus(), 60);
+  }
+
+  document.getElementById('modalAddClose').addEventListener('click', () => closeAddModal());
+  function closeAddModal() { modalAdd.style.display = 'none'; modalAdd.setAttribute('aria-hidden', 'true'); editingEntity = null; }
+
+  document.getElementById('modalAddSave').addEventListener('click', async () => {
+    const name = document.getElementById('m_name').value.trim();
+    if (!name) return alert('Name required');
+    const address = document.getElementById('m_address').value.trim();
+    const phone = document.getElementById('m_phone').value.trim();
+    const credit = parseFloat(document.getElementById('m_credit').value) || 0;
+    const debit = parseFloat(document.getElementById('m_debit').value) || 0;
+
+    if (!data[currentUser.username]) data[currentUser.username] = { customers: [], suppliers: [], employees: [] };
+
+    if (editingEntity) {
+      const idx = editingEntity.index;
+      const type = editingEntity.type;
+      const item = data[currentUser.username][type][idx];
+      item.name = name;
+      item.address = address;
+      item.phone = phone;
+      item.credit = credit;
+      item.debit = debit;
+      recalcEntityFromEntries(item);
+      data[currentUser.username][type][idx] = item;
+    } else {
+      const obj = { name, address, phone, credit, debit, entries: [] };
+      data[currentUser.username][currentAddType].unshift(obj);
+    }
+
+    await saveLocalAndMaybeSync();
+    closeAddModal();
+    renderList();
+  });
+
+  // ==== Account view & entries ====
+  function renderAccount() {
+    const area = document.getElementById('contentArea');
+    if (!area) return;
+    area.innerHTML = '';
+    const acc = data[currentUser.username][openAccount.type][openAccount.index];
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.marginBottom = '12px';
+    header.innerHTML = `<div>
+        <div class="back-link" id="accBack">&larr; Back</div>
+        <div style="font-weight:700;font-size:18px;margin-top:6px">${escapeHtml(acc.name)}</div>
+        <div class="muted">${escapeHtml(acc.address||'')} ${acc.phone?('· '+escapeHtml(acc.phone)) : ''}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="muted">Outstanding</div>
+        <div style="font-weight:700">${calcOutstanding(acc).toFixed(2)}</div>
+      </div>`;
+    area.appendChild(header);
+    document.getElementById('accBack').addEventListener('click', () => { openAccount = null; renderList(); });
+
+    const topRow = document.createElement('div');
+    topRow.style.display = 'flex'; topRow.style.justifyContent = 'space-between'; topRow.style.alignItems = 'center'; topRow.style.marginBottom = '8px';
+    topRow.innerHTML = '<div style="font-weight:600">Entries</div><div><button id="addEntryBtn" class="btn">New Entry</button></div>';
+    area.appendChild(topRow);
+
+    const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+    const table = document.createElement('table');
+    table.innerHTML = `<thead><tr><th style="width:40px">S/N</th><th style="width:120px">Date</th><th>Description</th><th style="width:90px;text-align:right">Credit</th><th style="width:90px;text-align:right">Debit</th><th style="width:80px">Actions</th></tr></thead><tbody></tbody><tfoot><tr><td colspan="3">Total</td><td style="text-align:right" id="totalCr">0.00</td><td style="text-align:right" id="totalDr">0.00</td><td></td></tr></tfoot>`;
+    wrap.appendChild(table);
+    area.appendChild(wrap);
+
+    const tbody = table.querySelector('tbody');
+    (acc.entries || []).forEach((row, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i+1}</td><td>${formatPretty(row.date)}</td><td>${escapeHtml(row.description||'')}</td><td style="text-align:right">${Number(row.credit||0).toFixed(2)}</td><td style="text-align:right">${Number(row.debit||0).toFixed(2)}</td><td style="text-align:right"><button class="link-like" data-action="edit-entry" data-idx="${i}">Edit</button></td>`;
+      tbody.appendChild(tr);
+    });
+
+    const totals = calcTotals(acc.entries || []);
+    document.getElementById('totalCr').textContent = totals.totalCredit.toFixed(2);
+    document.getElementById('totalDr').textContent = totals.totalDebit.toFixed(2);
+
+    document.getElementById('addEntryBtn').addEventListener('click', () => openEntryModal(openAccount));
+
+    tbody.querySelectorAll('[data-action="edit-entry"]').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const idx = parseInt(btn.dataset.idx, 10);
+        editingEntry = { index: idx };
+        openEntryModal(openAccount, idx);
+      });
+    });
+  }
+
+  // Entry modal
+  function openEntryModal(openAcc, editIndex) {
+    document.getElementById('e_date').value = (new Date()).toISOString().slice(0,10);
+    document.getElementById('e_desc').value = '';
+    document.getElementById('e_rate').value = '';
+    document.getElementById('e_qty').value = '';
+    document.getElementById('e_amount').value = '';
+    entryMode = 'debit'; updateEntryModeUI();
+
+    if (typeof editIndex === 'number') {
+      const acc = data[currentUser.username][openAcc.type][openAcc.index];
+      const entry = acc.entries[editIndex];
+      if (!entry) return alert('Entry missing');
+      if ((parseFloat(entry.debit) || 0) > 0) {
+        entryMode = 'debit';
+        updateEntryModeUI();
+        document.getElementById('debitAmount').textContent = Number(entry.debit || 0).toFixed(2);
+        document.getElementById('e_desc').value = entry.description || '';
+        document.getElementById('e_date').value = entry.date || (new Date()).toISOString().slice(0,10);
+      } else {
+        entryMode = 'credit';
+        updateEntryModeUI();
+        document.getElementById('e_amount').value = Number(entry.credit || 0).toFixed(2);
+        document.getElementById('e_desc').value = entry.description || '';
+        document.getElementById('e_date').value = entry.date || (new Date()).toISOString().slice(0,10);
+      }
+    }
+
+    modalEntry.style.display = 'flex';
+    modalEntry.setAttribute('aria-hidden', 'false');
+    setTimeout(() => document.getElementById('e_desc').focus(), 80);
+  }
+
+  document.getElementById('modalEntryClose').addEventListener('click', () => closeEntryModal());
+  function closeEntryModal() { modalEntry.style.display = 'none'; modalEntry.setAttribute('aria-hidden', 'true'); editingEntry = null; }
+
+  document.getElementById('entryDebit').addEventListener('click', () => { entryMode = 'debit'; updateEntryModeUI(); });
+  document.getElementById('entryCredit').addEventListener('click', () => { entryMode = 'credit'; updateEntryModeUI(); });
+
+  function updateEntryModeUI() {
+    const d = document.getElementById('debitInputs');
+    const c = document.getElementById('creditInputs');
+    if (entryMode === 'debit') { d.style.display='block'; c.style.display='none'; document.getElementById('entryDebit').style.background='var(--blue)'; document.getElementById('entryDebit').style.color='#fff'; document.getElementById('entryCredit').style.background=''; document.getElementById('entryCredit').style.color=''; }
+    else { d.style.display='none'; c.style.display='block'; document.getElementById('entryCredit').style.background='var(--blue)'; document.getElementById('entryCredit').style.color='#fff'; document.getElementById('entryDebit').style.background=''; document.getElementById('entryDebit').style.color=''; }
+    updateDebitAmount();
+  }
+
+  function updateDebitAmount() {
+    const r = parseFloat(document.getElementById('e_rate').value) || 0;
+    const q = parseFloat(document.getElementById('e_qty').value) || 0;
+    document.getElementById('debitAmount').textContent = (r * q).toFixed(2);
+  }
+  document.getElementById('e_rate').addEventListener('input', updateDebitAmount);
+  document.getElementById('e_qty').addEventListener('input', updateDebitAmount);
+
+  document.getElementById('modalEntrySave').addEventListener('click', async () => {
+    const date = document.getElementById('e_date').value || (new Date()).toISOString().slice(0,10);
+    const desc = document.getElementById('e_desc').value.trim() || '';
+    const acc = data[currentUser.username][openAccount.type][openAccount.index];
+    if (!acc) return alert('Account missing');
+
+    if (editingEntry && typeof editingEntry.index === 'number') {
+      const idx = editingEntry.index;
+      if (entryMode === 'debit') {
+        const amt = parseFloat(document.getElementById('debitAmount').textContent) || 0;
+        acc.entries[idx].date = date;
+        acc.entries[idx].description = desc;
+        acc.entries[idx].debit = amt;
+        acc.entries[idx].credit = 0;
+      } else {
+        const amt = parseFloat(document.getElementById('e_amount').value) || 0;
+        acc.entries[idx].date = date;
+        acc.entries[idx].description = desc;
+        acc.entries[idx].credit = amt;
+        acc.entries[idx].debit = 0;
+      }
+    } else {
+      if (entryMode === 'debit') {
+        const amt = parseFloat(document.getElementById('debitAmount').textContent) || 0;
+        const newEntry = { date, description: desc, credit: 0, debit: amt };
+        acc.entries.unshift(newEntry);
+      } else {
+        const amt = parseFloat(document.getElementById('e_amount').value) || 0;
+        const newEntry = { date, description: desc, credit: amt, debit: 0 };
+        acc.entries.unshift(newEntry);
+      }
+    }
+
+    // Recalc totals and save
+    recalcEntityFromEntries(acc);
+    await saveLocalAndMaybeSync();
+    closeEntryModal();
+    renderAccount();
+    renderList();
+  });
+
+  // ==== Data helpers ====
+  function recalcEntityFromEntries(entity) {
+    const totals = calcTotals(entity.entries || []);
+    entity.credit = totals.totalCredit;
+    entity.debit = totals.totalDebit;
+  }
+  function calcTotals(entries) {
+    const totalCredit = (entries || []).reduce((s,e)=>s+(parseFloat(e.credit)||0),0);
+    const totalDebit = (entries || []).reduce((s,e)=>s+(parseFloat(e.debit)||0),0);
+    return { totalCredit, totalDebit };
+  }
+  function calcOutstanding(entity) {
+    const t = calcTotals(entity.entries || []);
+    return (t.totalDebit - t.totalCredit);
+  }
+  function formatPretty(iso) {
+    try {
+      const d = new Date(iso);
+      const day = d.getDate();
+      const month = d.toLocaleString('en-US',{month:'short'});
+      const year = (''+d.getFullYear()).slice(-2);
+      return ordinal(day) + ' ' + month + ' ' + year;
+    } catch(e){ return iso; }
+  }
+  function ordinal(n){ const s=['th','st','nd','rd'], v=n%100; return n + (s[(v-20)%10]||s[v]||s[0]); }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":\"&#39;\"}[m]; }); }
+
+  // Clicking outside modals closes them
+  modalAdd.addEventListener('click', (e)=>{ if (e.target===modalAdd) closeAddModal(); });
+  modalEntry.addEventListener('click', (e)=>{ if (e.target===modalEntry) closeEntryModal(); });
+
+  // Save local + schedule sync
+  async function saveLocalAndMaybeSync() {
+    persistLocalCache();
+    setStatus('Saved locally');
+    if (accessToken) {
+      setStatus('Syncing to Drive...');
+      const ok = await syncToDrive();
+      setStatus(ok ? 'Synced with Drive' : 'Saved locally (sync failed)');
+    }
+  }
+
+  // Persist local cache
+  function persistLocalCache() {
+    localStorage.setItem(LS_KEYS.users, JSON.stringify(users));
+    localStorage.setItem(LS_KEYS.current, JSON.stringify(currentUser));
+    localStorage.setItem(LS_KEYS.data, JSON.stringify(data));
+  }
+
+  // ====== AUTH FLOW: request token / sign out ======
+  function requestAccessToken() {
+    // When requesting, tokenClient will call callback and set accessToken
+    setStatus('Requesting Google permission...');
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  }
+
+  async function signOut() {
+    try {
+      if (accessToken) {
+        // revoke token
+        const revokeRes = await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, { method: 'POST', headers: { 'Content-type': 'application/x-www-form-urlencoded' }});
+        console.log('revoke', revokeRes.status);
+      }
+    } catch(e) { console.warn('revoke error', e); }
+    accessToken = null;
+    driveFileId = null;
+    localStorage.removeItem(LS_KEYS.driveFileId);
+    setStatus('Signed out');
+    render();
+  }
+
+  // ====== UTIL ======
+  function escapeHtml(s) { return String(s||'').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":\"&#39;\"}[m]; }); }
+  function setStatus(t) { const el = document.getElementById('statusSpan'); if (el) el.textContent = t; console.log('[status]',t); }
+
+  // ====== ONCE SIGNED-IN: ensureDriveFileThenLoad called from tokenClient callback ======
+
+  // Expose a reload helper
+  window.__joma_reload = () => {
+    users = JSON.parse(localStorage.getItem(LS_KEYS.users) || '[]');
+    currentUser = JSON.parse(localStorage.getItem(LS_KEYS.current) || 'null');
+    data = JSON.parse(localStorage.getItem(LS_KEYS.data) || '{}') || {};
+    driveFileId = localStorage.getItem(LS_KEYS.driveFileId) || null;
+    render();
+  };
+
+  // The initial render (shows sign-in prompt)
+  render();
+
+})();
+</script>
+</body>
+</html>
